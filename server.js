@@ -1,12 +1,6 @@
 import app from "./app.js"
-const PORT = 3000;
+import  config from "./src/misc/constant.js"
 
-app.listen(PORT, () =>{
-    try {
-        console.log(`Servidor funcionando en puerto${PORT} `)
-        
-    } catch (error) {
-        
-        
-    }
+app.listen(config.PORT, () =>{
+        console.log(`Servidor funcionando en puerto: ${config.PORT} `)
 })
