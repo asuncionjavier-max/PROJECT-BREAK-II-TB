@@ -3,8 +3,7 @@ export const errorHandler = (err, req, res, next) =>{
     const errorMessage = err.message || "algo ha salido mal";
     
     res.status(statusCode).json({
-        ok: false,
-        status: statusCode,
-        message: errorMessage,
+        success: false,
+        error: errorMessage,
     })
 }

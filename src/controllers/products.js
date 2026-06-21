@@ -1,12 +1,10 @@
 import * as productService from "../services/products.js"
-import { errorHandler } from "../middlewares/errorhandler.js"
 
 export const allProducts = async (req,res,next) => {
     try {
         const data =  await productService.getAllProducts()
         res.status(200).json({
-            ok:true,
-            message: "success",
+            success:true,
             data: data
         })
         
@@ -32,8 +30,7 @@ export const getProductById = async (req,res, next) =>{
                 return next(error)
             }
         res.status(200).json({
-            ok:true,
-            message: "success",
+            success:true,
             data: product
         })
     } catch (error) {
@@ -48,8 +45,7 @@ export const createProduct = async(req,res,next) =>{
         const newProduct = await productService.createProduct({nombre, precio, stock});
 
         res.status(201).json({
-            ok:true,
-            message: "success",
+            success:true,
             data: newProduct
         })
         
@@ -71,14 +67,13 @@ export const updateProduct = async (req,res,next) =>{
         const update = await productService.updateProduct(id, {nombre, precio,stock });
 
         res.status(200).json({
-            ok: true,
-            message: "success",
+            success: true,
             data: update
         })
     } catch (error) {
         if (error.code === 'P2025') {
             error.statusCode = 404;
-            error.message = "el producto que intentas borrar no existe";
+            error.message = "el producto que intentas actualizar no existe";
         }
         next(error);
     }
@@ -103,8 +98,7 @@ export const deleteProduct = async (req,res,next) =>{
         const deleted = await productService.deleteProduct(id)
         
         res.status(200).json({
-            ok:true,
-            message: "product Deleted",
+            success:true,
             data: deleted
         })
         
