@@ -1,9 +1,12 @@
-import { Router } from "express";
+import express from "express";
+import products from "./products.js"
 
-const router = Router();
+const router = express.Router();
 
 router.get("/health", (req,res) =>{
     res.status(200).send("la ruta funciona")
 });
+
+router.use(products);
 
 export default router;
