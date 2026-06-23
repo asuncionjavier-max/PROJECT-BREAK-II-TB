@@ -1,6 +1,6 @@
 import express from "express";
 import products from "./products.js"
-
+import auth from "./auth.js"
 const router = express.Router();
 
 router.get("/health", (req,res) =>{
@@ -8,5 +8,7 @@ router.get("/health", (req,res) =>{
 });
 
 router.use(products);
+
+router.use(auth)
 
 export default router;
