@@ -1,4 +1,3 @@
-import { errorHandler } from "../middlewares/errorhandler.js";
 import * as authService from "../services/auth.js"
 
 const cookieOptions = {
