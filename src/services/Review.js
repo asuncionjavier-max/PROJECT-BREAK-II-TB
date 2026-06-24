@@ -42,7 +42,7 @@ export const updateReview = async ({userId,reviewId, comment, rating}) =>{
     const updated = await Review.findOneAndUpdate(
         {supabase_user_id: userId, _id: reviewId,},
         {rating, comment},
-        {new:true},
+        {returnDocument:'after'},
     );
     if(!updated) {
         const Error = new error ("no se encontro la review o no tienes permiso para modificarla")
