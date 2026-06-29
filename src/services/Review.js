@@ -2,7 +2,7 @@ import { Review } from "../config/modelReview.js";
 import prisma from "../lib/prisma.js"
 
 
-export const userReviews = async (userId) =>{
+export const userReviews = async ({userId}) =>{
 
     const allReviews = await Review.find({
         supabase_user_id: userId
