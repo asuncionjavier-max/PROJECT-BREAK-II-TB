@@ -5,8 +5,16 @@ const wishlistSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    supabase_user_id: {
+    supabase_user_id:{
         type: String,
+        required: true
+    },
+    product_name: {
+        type: String,
+        required: true
+    },
+    stock_product: {
+        type: Number,
         required: true
     },
         created_at: {
@@ -15,4 +23,4 @@ const wishlistSchema = new mongoose.Schema({
     }
 });
 
-export const wishlist = mongoose.model("Wishlist", wishlistSchema);
+export const Wishlist = mongoose.model("Wishlist", wishlistSchema);
