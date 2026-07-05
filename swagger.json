@@ -1,0 +1,622 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API E-commerce",
+    "version": "1.0.0",
+    "description": "Backend de e-commerce - Proyecto The Bridge"
+  },
+  "servers": [
+    { "url": "http://localhost:4000/api", "description": "Local" },
+    { "url": "https://project-break-ii-tb.onrender.com/api", "description": "Producción (Render)" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "token"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT obtenido en POST /api/login. Formato: Bearer token"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "nombre": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "example": "user" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "nombre": { "type": "string", "example": "Orquidea" },
+          "precio": { "type": "string", "example": "19.99" },
+          "stock": { "type": "integer", "example": 25 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CartItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 4 },
+          "product_id": { "type": "integer", "example": 1 },
+          "cart_id": { "type": "integer", "example": 1 },
+          "cantidad": { "type": "integer", "example": 2 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "products": { "$ref": "#/components/schemas/Product" }
+        }
+      },
+      "Cart": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "user_id": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "enum": ["PENDING", "CHECKED_OUT"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "cart_item": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CartItem" }
+          }
+        }
+      },
+      "Review": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "665f1c2e8f1b2c0012a3b456" },
+          "supabase_product_id": { "type": "integer", "example": 1 },
+          "supabase_user_id": { "type": "string", "format": "uuid" },
+          "user_name": { "type": "string", "example": "Javi" },
+          "product_name": { "type": "string", "example": "Orquidea" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 10, "example": 8 },
+          "comment": { "type": "string", "example": "Muy buena calidad" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Wishlist": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "665f1c2e8f1b2c0012a3b457" },
+          "supabase_product_id": { "type": "integer", "example": 1 },
+          "supabase_user_id": { "type": "string", "format": "uuid" },
+          "product_name": { "type": "string", "example": "Orquidea" },
+          "stock_product": { "type": "integer", "example": 25 },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": { "type": "object" }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": { "type": "string", "example": "Producto no encontrado" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/register": {
+      "post": {
+        "summary": "Registrar un nuevo usuario",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Usuario creado" },
+          "400": { "description": "Datos inválidos" }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "Iniciar sesión",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login correcto, cookie seteada" },
+          "401": { "description": "Email o contraseña inválidos" }
+        }
+      }
+    },
+    "/delete": {
+      "delete": {
+        "summary": "Eliminar usuario (requiere confirmar password)",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Usuario eliminado" },
+          "401": { "description": "Credenciales incorrectas" }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "summary": "Obtener perfil del usuario autenticado",
+        "tags": ["Auth"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Perfil obtenido" },
+          "401": { "description": "No autenticado" }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "summary": "Cerrar sesión",
+        "tags": ["Auth"],
+        "responses": {
+          "200": { "description": "Sesión cerrada" }
+        }
+      }
+    },
+    "/admin": {
+      "get": {
+        "summary": "Ruta restringida solo para administradores",
+        "tags": ["Auth"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Acceso admin correcto" },
+          "401": { "description": "No autenticado" },
+          "403": { "description": "No tiene el rol requerido" }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "Obtener todos los productos",
+        "tags": ["Products"],
+        "responses": {
+          "200": {
+            "description": "Lista de productos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Product" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear un producto",
+        "description": "Requiere rol de administrador.",
+        "tags": ["Products"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": { "type": "string" },
+                  "precio": { "type": "number" },
+                  "stock": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Producto creado" },
+          "401": { "description": "No autenticado" },
+          "403": { "description": "No tiene rol de administrador" }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "Obtener un producto por id",
+        "tags": ["Products"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Producto encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Product" }
+              }
+            }
+          },
+          "404": { "description": "Producto no encontrado" }
+        }
+      },
+      "patch": {
+        "summary": "Actualizar un producto",
+        "description": "Requiere rol de administrador.",
+        "tags": ["Products"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": { "type": "string" },
+                  "precio": { "type": "number" },
+                  "stock": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Producto actualizado" },
+          "401": { "description": "No autenticado" },
+          "403": { "description": "No tiene rol de administrador" },
+          "404": { "description": "Producto no encontrado" }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar un producto",
+        "description": "Requiere rol de administrador.",
+        "tags": ["Products"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Producto eliminado" },
+          "401": { "description": "No autenticado" },
+          "403": { "description": "No tiene rol de administrador" },
+          "404": { "description": "Producto no encontrado" }
+        }
+      }
+    },
+    "/cart": {
+      "get": {
+        "summary": "Obtener el carrito del usuario autenticado",
+        "tags": ["Cart"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Carrito obtenido correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/Cart" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Vaciar el carrito (elimina todos los items)",
+        "tags": ["Cart"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Carrito vaciado" },
+          "401": { "description": "No autenticado" }
+        }
+      }
+    },
+    "/cart/items": {
+      "post": {
+        "summary": "Añadir un producto al carrito",
+        "tags": ["Cart"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "productId": { "type": "integer", "example": 1 },
+                  "cantidad": { "type": "integer", "example": 2 }
+                },
+                "required": ["productId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Item añadido o cantidad actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/CartItem" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          },
+          "400": { "description": "Stock insuficiente" }
+        }
+      }
+    },
+    "/cart/items/{itemId}": {
+      "patch": {
+        "summary": "Actualizar la cantidad de un item del carrito",
+        "tags": ["Cart"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "itemId", "in": "path", "required": true, "schema": { "type": "integer" }, "description": "id de la fila cart_item" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cantidad": { "type": "integer", "example": 5 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Cantidad actualizada (o item eliminado si cantidad <= 0)" },
+          "404": { "description": "Item no encontrado en tu carrito" }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar un item del carrito",
+        "tags": ["Cart"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "itemId", "in": "path", "required": true, "schema": { "type": "integer" }, "description": "id de la fila cart_item" }
+        ],
+        "responses": {
+          "200": { "description": "Item eliminado" },
+          "404": { "description": "Item no encontrado en tu carrito" }
+        }
+      }
+    },
+    "/cart/checkout": {
+      "post": {
+        "summary": "Confirmar checkout del carrito (PENDING -> CHECKED_OUT)",
+        "tags": ["Cart"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Checkout realizado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/Cart" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "El carrito está vacío",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews": {
+      "get": {
+        "summary": "Obtener las reviews del usuario autenticado",
+        "tags": ["Reviews"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de reviews",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Review" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}/reviews": {
+      "post": {
+        "summary": "Crear una review para un producto",
+        "tags": ["Reviews"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 10 },
+                  "comment": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Review creada" },
+          "404": { "description": "Producto no encontrado" }
+        }
+      }
+    },
+    "/reviews/{reviewId}": {
+      "patch": {
+        "summary": "Actualizar una review",
+        "tags": ["Reviews"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "reviewId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rating": { "type": "integer" },
+                  "comment": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Review actualizada" },
+          "404": { "description": "Review no encontrada" }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar una review",
+        "tags": ["Reviews"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "reviewId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Review eliminada" },
+          "404": { "description": "Review no encontrada" }
+        }
+      }
+    },
+    "/wishlist": {
+      "get": {
+        "summary": "Obtener la wishlist del usuario",
+        "tags": ["Wishlist"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de wishlist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Wishlist" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}/wishlist": {
+      "post": {
+        "summary": "Añadir un producto a la wishlist",
+        "tags": ["Wishlist"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "201": { "description": "Producto añadido a wishlist" },
+          "404": { "description": "Producto no encontrado" }
+        }
+      }
+    },
+    "/wishlist/{wishlistId}": {
+      "delete": {
+        "summary": "Eliminar un producto de la wishlist",
+        "tags": ["Wishlist"],
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [
+          { "name": "wishlistId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Producto eliminado de wishlist" },
+          "404": { "description": "No encontrado" }
+        }
+      }
+    }
+  }
+}
