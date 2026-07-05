@@ -3,7 +3,6 @@ import { crypt, compare } from "../utils/pass.js"
 import { isString } from "../utils/isString.js";
 import jwt from "jsonwebtoken";
 import config from "../misc/constant.js"
-import { useReducer } from "react";
 
 export const newUser = async ({nombre, email, password,}) =>{
         const hashedPassword = await crypt(isString(password));

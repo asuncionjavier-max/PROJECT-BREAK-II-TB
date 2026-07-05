@@ -22,7 +22,7 @@ export const addWishlist = async (req,res,next) =>{
         if(isNaN(productId)) {
             const error = new Error ("el id debe ser un numero")
             error.statusCode = 400;
-            next(error)
+            return next(error)
         }
         const productAdded = await wishlistService.addProductWishlist({productId,userId})
     

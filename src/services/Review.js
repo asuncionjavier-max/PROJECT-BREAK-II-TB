@@ -45,11 +45,11 @@ export const updateReview = async ({userId,reviewId, comment, rating}) =>{
         {returnDocument:'after'},
     );
     if(!updated) {
-        const Error = new error ("no se encontro la review o no tienes permiso para modificarla")
+        const error = new Error ("no se encontro la review o no tienes permiso para modificarla")
         error.statusCode = 500;
         throw error;
     };
-
+    
     return updated
 }
 export const deleteReview = async ({userId, reviewId}) =>{

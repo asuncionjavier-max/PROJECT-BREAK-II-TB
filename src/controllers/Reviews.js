@@ -4,7 +4,7 @@ export const allReviews = async(req,res,next) =>{
     try {
         const userId = req.user.id;
     
-        const userReviews = await reviewService.userReviews(userId)
+        const userReviews = await reviewService.userReviews({userId})
     
         res.status(200).json({
             success:true,
