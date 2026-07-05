@@ -117,6 +117,12 @@ export const checkoutCart = async (userId) =>{
 
     return await prisma.cart.update({
         where:{ id: cart.id},
-        data: { status: 'CHECKED_OUT'}
+        data: { status: 'CHECKED_OUT'},
+        include: {
+            cart_item:{
+
+            include: {products: true}
+           }   
+        }
     });
 };
