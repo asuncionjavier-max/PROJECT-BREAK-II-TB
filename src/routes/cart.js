@@ -11,7 +11,7 @@ router.patch("/cart/items/:itemId", authMiddleware, cartController.updateCartIte
 
 router.delete("/cart/items/:itemId", authMiddleware, cartController.removeCartItem);
 
-router.delete("/cart", authMiddleware, cartController.clearCart);ç
+router.delete("/cart", authMiddleware, cartController.clearCart);
 
 router.post("/cart/checkout", authMiddleware,cartController.checkoutCart);
 
