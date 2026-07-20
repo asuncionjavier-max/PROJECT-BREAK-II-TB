@@ -11,13 +11,14 @@ datasource db {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model products {
-  id         Int         @id @default(autoincrement())
-  nombre     String      @db.VarChar(255)
-  precio     Decimal     @db.Decimal(10, 2)
-  stock      Int         @default(0)
-  created_at DateTime?   @default(now()) @db.Timestamptz(6)
-  updated_at DateTime?   @default(now()) @db.Timestamptz(6)
-  cart_item  cart_item[]
+  id          Int           @id @default(autoincrement())
+  nombre      String        @db.VarChar(255)
+  precio      Decimal       @db.Decimal(10, 2)
+  stock       Int           @default(0)
+  created_at  DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime?     @default(now()) @db.Timestamptz(6)
+  cart_item   cart_item[]
+  order_items order_items[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -31,6 +32,7 @@ model users {
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @default(now()) @db.Timestamptz(6)
   cart       cart?
+  orders     orders[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -42,6 +44,7 @@ model cart {
   updated_at DateTime    @default(now()) @db.Timestamptz(6)
   users      users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
   cart_item  cart_item[]
+  orders     orders[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -58,7 +61,39 @@ model cart_item {
   @@unique([cart_id, product_id], map: "unique_cart_product")
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model order_items {
+  id          Int      @id @default(autoincrement())
+  order_id    Int
+  product_id  Int
+  cantidad    Int      @default(1)
+  precio_unit Decimal  @db.Decimal(10, 2)
+  orders      orders   @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_order")
+  products    products @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_product")
+
+  @@unique([order_id, product_id], map: "unique_order_product")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model orders {
+  id          Int           @id @default(autoincrement())
+  user_id     String        @db.Uuid
+  cart_id     Int
+  created_at  DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime      @default(now()) @db.Timestamptz(6)
+  status      ship_status   @default(PENDING)
+  order_items order_items[]
+  cart        cart          @relation(fields: [cart_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_carts")
+  users       users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_users")
+}
+
 enum cart_status {
   PENDING
   CHECKED_OUT
+}
+
+enum ship_status {
+  PENDING
+  SENT
+  TAKEN
 }
