@@ -109,7 +109,7 @@ export const checkoutCart = async (userId) =>{
         where: {user_id: userId, status: 'PENDING'},
         include: { cart_item: true}
     });
-    if(!cart | cart.cart_item.length === 0){
+    if(!cart || cart.cart_item.length === 0){
         const error = new Error ("El carrito esta vacio")
         error.statusCode = 400;
         throw error;
