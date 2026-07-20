@@ -9,7 +9,8 @@ import { fileURLToPath } from "node:url";
 const app = express();
 
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
+app.use(cors());
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
