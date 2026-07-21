@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors"
 import indexRoutes from "./src/routes/indexroutes.js";
 import { errorHandler } from "./src/middlewares/errorhandler.js";
 import cookieParser from "cookie-parser";
@@ -7,10 +8,10 @@ import fs from "node:fs"
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 const app = express();
+app.use(cors());
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
